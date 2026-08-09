@@ -521,6 +521,7 @@ h2{
     padding:10px 16px;
     min-width:150px;
   }
+  #updated
   .status-card b{
     display:block;
     color:var(--ink);
