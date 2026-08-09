@@ -325,6 +325,10 @@ const els = {
 let queue = [];
 let current = -1;
 
+// Storage keys for persisting state
+const STORAGE_INDEX_KEY = 'player_last_track_index';
+const STORAGE_TIME_KEY = 'player_last_track_time';
+
 function setButtonsEnabled(enabled){
   [els.prev, els.play, els.pause, els.stop, els.next].forEach(b => b.disabled = !enabled);
 }
@@ -333,13 +337,33 @@ function fileStreamUrl(fileId){
   return `https://www.googleapis.com/drive/v3/files/${fileId}?alt=media&key=${CONFIG.DRIVE_API_KEY}`;
 }
 
-function loadTrack(index, autoplay){
+function saveState() {
+  if (current >= 0) {
+    localStorage.setItem(STORAGE_INDEX_KEY, current);
+    localStorage.setItem(STORAGE_TIME_KEY, audio.currentTime || 0);
+  }
+}
+
+function loadTrack(index, autoplay, startPosition = 0){
   if(queue.length === 0) return;
   current = ((index % queue.length) + queue.length) % queue.length;
   const track = queue[current];
   audio.src = fileStreamUrl(track.id);
   els.title.textContent = track.name.replace(/\.[^/.]+$/, "");
   els.meta.textContent = `track ${current + 1} of ${queue.length}`;
+
+  // Save current track index
+  localStorage.setItem(STORAGE_INDEX_KEY, current);
+
+  // Restore playback timestamp once metadata is loaded
+  if (startPosition > 0) {
+    const onLoadedMetadata = () => {
+      audio.currentTime = startPosition;
+      audio.removeEventListener('loadedmetadata', onLoadedMetadata);
+    };
+    audio.addEventListener('loadedmetadata', onLoadedMetadata);
+  }
+
   if(autoplay){
     audio.play().catch(() => {});
   }
@@ -349,14 +373,26 @@ els.play.addEventListener('click', () => {
   if(current === -1) loadTrack(0, true);
   else audio.play().catch(() => {});
 });
-els.pause.addEventListener('click', () => audio.pause());
+els.pause.addEventListener('click', () => {
+  audio.pause();
+  saveState();
+});
 els.stop.addEventListener('click', () => {
   audio.pause();
   audio.currentTime = 0;
+  localStorage.setItem(STORAGE_TIME_KEY, 0);
 });
 els.next.addEventListener('click', () => loadTrack(current + 1, true));
 els.prev.addEventListener('click', () => loadTrack(current - 1, true));
 audio.addEventListener('ended', () => loadTrack(current + 1, true));
+
+// Continuously update saved time during playback & page unload
+audio.addEventListener('timeupdate', () => {
+  if (current >= 0 && !audio.paused) {
+    localStorage.setItem(STORAGE_TIME_KEY, audio.currentTime);
+  }
+});
+window.addEventListener('beforeunload', saveState);
 
 async function loadLibrary() {
   if (
@@ -415,7 +451,15 @@ async function loadLibrary() {
     }
 
     setButtonsEnabled(true);
-    loadTrack(0, false);
+
+    // Retrieve saved track index and playback time
+    const savedIndex = parseInt(localStorage.getItem(STORAGE_INDEX_KEY), 10);
+    const savedTime = parseFloat(localStorage.getItem(STORAGE_TIME_KEY)) || 0;
+
+    const initialIndex = (!isNaN(savedIndex) && savedIndex >= 0 && savedIndex < queue.length) ? savedIndex : 0;
+    
+    // Load saved track and resume timestamp without autoplaying
+    loadTrack(initialIndex, false, savedTime);
 
   } catch (err) {
     console.error(err);
@@ -424,7 +468,6 @@ async function loadLibrary() {
   }
 }
 loadLibrary();
-
 </script>
 
 </body>
