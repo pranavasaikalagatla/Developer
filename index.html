@@ -7,14 +7,52 @@
 <link rel="stylesheet" href="style.css">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Roboto+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Common Button Styling */
+  .floating-btn {
+    position: fixed;
+    z-index: 1000;
+    background-color: #1a73e8;
+    color: #ffffff;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 6px;
+    font-family: 'Roboto', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+    transition: background-color 0.2s ease, transform 0.1s ease;
+  }
+  .floating-btn:hover {
+    background-color: #1557b0;
+  }
+  .floating-btn:active {
+    transform: scale(0.96);
+  }
 
+  /* Top-Right Fixed Skip to Bottom Button */
+  .skip-to-bottom-btn {
+    top: 16px;
+    right: 16px;
+  }
+
+  /* Bottom-Right Fixed Scroll to Top Button */
+  .scroll-to-top-btn {
+    bottom: 16px;
+    right: 16px;
+  }
+</style>
 </head>
 <body>
+
+<!-- Skip Navigation Buttons -->
+<button id="btn-skip-bottom" class="floating-btn skip-to-bottom-btn">Skip &darr;</button>
+<button id="btn-scroll-top" class="floating-btn scroll-to-top-btn">Scroll &uarr;</button>
 
 <div class="container"> 
   <div class="content">
     <h1>Developer Documentation</h1>
-    <p>Skip to main content</p>
     <p>Chrome for Developers</p>
     <h2>Docs</h2>
     <h2>Blog</h2>
@@ -37,7 +75,7 @@
     <h2>Reference</h2>
     <p>API</p>
     <p>Was this helpful?</p>
-    <p>API reference</p>
+    <h2>API reference</h2>
     <p>Most extensions need access to one or more Chrome Extensions APIs to function. This API reference describes the APIs available for use in extensions and presents example use cases.</p>
     <p>Beginning in Chrome 148, these APIs are also available under the browser namespace as a cross-browser alternative to chrome. See The browser namespace for adoption guidance.</p>
     <p>Common Extensions API features</p>
@@ -310,6 +348,22 @@ const CONFIG = {
   DRIVE_FOLDER_ID: "1OuKBhqttzMoaBM5MMm4u9-6_GezgZD8Z"
 };
 /* ========================================================= */
+
+// Skip to Bottom Click Event
+document.getElementById('btn-skip-bottom').addEventListener('click', () => {
+  window.scrollTo({
+    top: document.documentElement.scrollHeight,
+    behavior: 'smooth'
+  });
+});
+
+// Scroll to Top Click Event
+document.getElementById('btn-scroll-top').addEventListener('click', () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+});
 
 const audio = document.getElementById('audio');
 const els = {
