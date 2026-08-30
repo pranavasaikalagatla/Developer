@@ -1,4 +1,3 @@
-﻿# chrome
-# ChromeDevelopers
+﻿# ChromeDevelopers
 
-https://pranava-sai-tech.github.io/Developer/
+https://pranavasaikalagatla.github.io/Developer/
